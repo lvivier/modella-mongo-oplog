@@ -1,0 +1,19 @@
+{
+  "name": "modella-mongo-oplog",
+  "version": "0.0.1",
+  "scripts": {
+    "test": "mocha -R spec"
+  },
+  "dependencies": {
+    "oplog": "git://github.com/cloudup/oplog",
+    "component-clone": "^0.2.1",
+    "mongo-query": "^0.5.2",
+    "debug": "^0.7.4",
+    "monk": "^0.8.1"
+  },
+  "devDependencies": {
+    "modella-mongo": "^0.2.7",
+    "modella": "^0.2.7",
+    "mocha": "^1.17.1"
+  }
+}
