@@ -1,10 +1,8 @@
 
-var uid = require('uid')
 var express = require('express')
 var oplog = require('..')('localhost/local', 'test')
 var mongo = require('modella-mongo')('localhost/test')
 var model = require('modella')
-var noop = function(){}
 
 var Timer = model('Timer')
   .use(mongo)
@@ -13,29 +11,27 @@ var Timer = model('Timer')
   .attr('time')
   .attr('name')
 
-var timer = new Timer({name: 'Example'})
-var id = null
+var timer = new Timer({name:'Example', time:Date.now()})
+timer.save()
 
-timer.save(function(){ id = timer.primary() })
-
-setInterval(function () {
-  timer.time(Date.now())
-  timer.save(noop)
+// update every two seconds
+setInterval(function(){
+  timer
+    .time(Date.now())
+    .save()
 }, 2000)
 
 express()
-  .set('views', __dirname)
-  .set('view engine', 'jade')
   .get('/subscribe', subscribe)
   .get('/', index)
   .listen(3000)
 
 function index (req, res) {
-  res.render('index')
+  res.render(__dirname+'/index.jade')
 }
 
 function subscribe (req, res) {
-  Timer.find(id, done)
+  Timer.find(timer.primary(), done)
 
   function done (err, timer) {
     if (err) throw err
@@ -46,14 +42,14 @@ function subscribe (req, res) {
       'Connection': 'keep-alive'
     })
 
-    res.write('id: '+uid(6)+'\n')
+    res.write('id: '+Date.now()+'\n')
     res.write('event: init\n')
     res.write('data: '+JSON.stringify(timer.attrs)+'\n\n')
 
     timer
       .subscribe()
       .on('change time', function () {
-        res.write('id: '+uid(6)+'\n')
+        res.write('id: '+Date.now()+'\n')
         res.write('event: change\n')
         res.write('data: '+JSON.stringify(timer.attrs)+'\n\n')
       })

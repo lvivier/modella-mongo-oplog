@@ -1,15 +1,15 @@
 doctype html
 html
   body
-    h1#timer-name
-    h1#timer-time
+    h1#timer
   script.
+    var tmpl = '{name} {time}'
     var sse = new EventSource('/subscribe')
-    var $name = document.getElementById('timer-name')
-    var $time = document.getElementById('timer-time')
+    var el = document.querySelector('#timer')
 
     sse.addEventListener('change', function (ev) {
       data = JSON.parse(ev.data)
-      $name.innerText = data.name
-      $time.innerText = data.time
+      el.innerText = tmpl
+        .replace('{name}', data.name)
+        .replace('{time}', data.time)
     })
