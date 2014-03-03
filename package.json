@@ -14,6 +14,9 @@
   "devDependencies": {
     "modella-mongo": "^0.2.7",
     "modella": "^0.2.7",
-    "mocha": "^1.17.1"
+    "mocha": "^1.17.1",
+    "express": "^3.4.8",
+    "uid": "0.0.2",
+    "jade": "^1.3.0"
   }
 }

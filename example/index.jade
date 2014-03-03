@@ -1,0 +1,15 @@
+doctype html
+html
+  body
+    h1#timer-name
+    h1#timer-time
+  script.
+    var sse = new EventSource('/subscribe')
+    var $name = document.getElementById('timer-name')
+    var $time = document.getElementById('timer-time')
+
+    sse.addEventListener('change', function (ev) {
+      data = JSON.parse(ev.data)
+      $name.innerText = data.name
+      $time.innerText = data.time
+    })
