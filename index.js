@@ -20,7 +20,7 @@ var models = {}
  * Add oplog subscription to models
  */
 
-module.exports = function subscribe (dsn, db) {
+module.exports = function (dsn, db) {
   // TODO pick monk instance off modella-mongo
   var conn = monk(dsn)
   var log = oplog(conn)
@@ -39,18 +39,14 @@ module.exports = function subscribe (dsn, db) {
 
     // add subscribe method
     Model.prototype.subscribe = function () {
-      var id = this.primary()
-      models[id] = this
-      debug('subscribe id %s', id)
+      sub(this)
       this.emit('subscribe')
       return this
     }
 
     // add unsubscribe method
     Model.prototype.unsubscribe = function () {
-      var id = this.primary()
-      models[id] = undefined
-      debug('unsubscribe id %s', id)
+      unsub(this)
       this.emit('unsubscribe')
       return this
     }
@@ -60,6 +56,19 @@ module.exports = function subscribe (dsn, db) {
   
 }
 
+function sub (model) {
+  var id = model.primary()
+  if (!models[id]) models[id] = []
+  models[id].push(model)
+  debug('subscribe id %s', id)
+}
+
+function unsub (model) {
+  var id = model.primary()
+  // if (models[id].length) 
+  debug('unsubscribe id %s', id)
+}
+
 
 /**
  * Model updated on db
@@ -67,19 +76,22 @@ module.exports = function subscribe (dsn, db) {
 
 function update (ch) {
   var id = ch.o2._id
-  var model = models[id]
+  var arr = models[id]
 
   // is subscribed model?
-  if (!model) return
+  if (!arr) return
 
   // clone attribs
-  var obj = clone(model.attrs)
+  var obj = clone(arr[0].attrs)
   debug('update %s', id)
 
   // update
   // TODO only attrs that belong to model
   query(obj, {}, ch.o)
-  model.set(obj)
+
+  arr.forEach(function (model) {
+    model.set(obj)
+  })
 }
 
 
@@ -89,12 +101,15 @@ function update (ch) {
 
 function remove (ch) {
   var id = ch.o._id
-  var model = models[id]
+  var arr = models[id]
 
-  if (!model) return
+  if (!arr) return
 
   debug('remove %s', id)
 
-  model.removed = true
-  model.emit('remove')
+  arr.forEach(function (model) {
+    model.removed = true
+    model.emit('remove')
+  })
+  arr = undefined
 }
